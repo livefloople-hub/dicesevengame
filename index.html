@@ -1,0 +1,2072 @@
+<body>
+
+<div id="dateTime" style="
+text-align:center;
+font-size:20px;
+font-weight:bold;
+padding:10px;
+background:#222;
+color:white;
+border-radius:10px;
+margin-bottom:10px;">
+Loading...
+</div>
+
+<script>
+
+// ======================
+// DATE & TIME
+// ======================
+
+function updateDateTime(){
+
+    const now = new Date();
+
+    const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    };
+
+    const date = now.toLocaleDateString(undefined, options);
+
+    const time = now.toLocaleTimeString();
+
+    document.getElementById("dateTime").innerHTML =
+        "📅 " + date + "<br>🕒 " + time;
+
+}
+
+// Update immediately
+updateDateTime();
+
+// Update every second
+setInterval(updateDateTime, 1000);
+
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dice 7 Game</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+
+background:#7b4a24;
+color:white;
+text-align:center;
+
+}
+
+.container{
+
+max-width:700px;
+margin:auto;
+padding:20px;
+
+}
+
+h1{
+
+margin-top:20px;
+font-size:40px;
+
+}
+
+.dice-area{
+
+display:flex;
+justify-content:center;
+gap:40px;
+margin:30px 0;
+
+}
+
+.dice{
+
+font-size:100px;
+transition:0.2s;
+
+}
+
+@keyframes shake{
+
+0%{transform:rotate(0deg);}
+20%{transform:rotate(-15deg);}
+40%{transform:rotate(15deg);}
+60%{transform:rotate(-15deg);}
+80%{transform:rotate(15deg);}
+100%{transform:rotate(0deg);}
+
+}
+
+.rolling{
+
+animation:shake .5s linear infinite;
+
+}
+
+.info{
+
+font-size:25px;
+margin:10px;
+
+}
+
+button{
+
+padding:15px 25px;
+font-size:20px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin:8px;
+
+}
+
+button:hover{
+
+opacity:.9;
+
+}
+
+.panel{
+
+background:rgba(255,255,255,.15);
+padding:15px;
+border-radius:10px;
+margin-top:20px;
+
+}
+
+#settings{
+
+display:none;
+
+}
+
+.shop-item{
+
+padding:10px;
+margin:10px;
+background:rgba(255,255,255,.1);
+border-radius:8px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎲 Dice 7 Game</h1>
+
+<div class="dice-area">
+
+<div id="dice1" class="dice">⚀</div>
+
+<div id="dice2" class="dice">⚀</div>
+
+</div>
+
+<h2 id="sum">
+1 + 1 = 2
+</h2>
+
+<h2 id="status">
+Press Roll
+</h2>
+
+<div class="panel">
+
+<h3 id="coins">🪙 Coins: 0</h3>
+
+<h3 id="wins">🏆 Wins: 0</h3>
+
+<h3 id="streak">🔥 Win Streak: 0</h3>
+
+<h3 id="highest">👑 Highest Streak: 0</h3>
+
+<h3 id="rebirths">🌟 Rebirths: 0</h3>
+
+<h3 id="rolls">🎲 Rolls: 0</h3>
+
+</div>
+
+<button onclick="rollDice()">
+🎲 Roll Dice
+</button>
+
+<button onclick="toggleSettings()">
+⚙️ Settings
+</button>
+
+<button onclick="rebirth()">
+🌟 Rebirth
+</button>
+
+<div id="settings" class="panel">
+
+<h2>⚙️ Settings</h2>
+
+<label>
+<input type="checkbox" id="soundToggle" checked>
+Sound
+</label>
+
+<br><br>
+
+<label>
+<input type="checkbox" id="animationToggle" checked>
+Animation
+</label>
+
+<br><br>
+
+<label>
+<input type="checkbox" id="darkToggle">
+Dark Mode
+</label>
+
+<br><br>
+
+<label>
+
+Roll Speed
+
+<select id="speed">
+
+<option value="40">Fast</option>
+
+<option value="70" selected>Normal</option>
+
+<option value="120">Slow</option>
+
+</select>
+
+</label>
+
+<br><br>
+
+<button onclick="resetGame()">
+
+🗑 Reset Save
+
+</button>
+
+</div>
+
+<div class="panel">
+
+<h2>🏪 Shop</h2>
+
+<div class="shop-item">
+
+Gold Dice
+<br>
+100 Coins
+
+<button>
+Buy
+</button>
+
+</div>
+
+<div class="shop-item">
+
+Rainbow Dice
+<br>
+500 Coins
+
+<button>
+Buy
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const faces = ["⚀","⚁","⚂","⚃","⚄","⚅"];
+
+// ---------- Load Save ----------
+let coins = Number(localStorage.getItem("coins")) || 0;
+let wins = Number(localStorage.getItem("wins")) || 0;
+let streak = Number(localStorage.getItem("streak")) || 0;
+let highestStreak = Number(localStorage.getItem("highestStreak")) || 0;
+let rebirths = Number(localStorage.getItem("rebirths")) || 0;
+let rolls = Number(localStorage.getItem("rolls")) || 0;
+
+let soundEnabled = localStorage.getItem("sound") !== "false";
+let animationEnabled = localStorage.getItem("animation") !== "false";
+
+document.getElementById("soundToggle").checked = soundEnabled;
+document.getElementById("animationToggle").checked = animationEnabled;
+
+updateUI();
+
+// ---------- Settings ----------
+
+function toggleSettings(){
+
+const menu=document.getElementById("settings");
+
+menu.style.display=
+menu.style.display==="block" ? "none":"block";
+
+}
+
+document.getElementById("soundToggle").onchange=function(){
+
+soundEnabled=this.checked;
+
+saveGame();
+
+}
+
+document.getElementById("animationToggle").onchange=function(){
+
+animationEnabled=this.checked;
+
+saveGame();
+
+}
+
+document.getElementById("darkToggle").onchange=function(){
+
+if(this.checked){
+
+document.body.style.background="#1a1a1a";
+
+}else{
+
+document.body.style.background="#7b4a24";
+
+}
+
+}
+
+// ---------- Sounds ----------
+
+function beep(freq,time){
+
+if(!soundEnabled) return;
+
+const audio=new(window.AudioContext||window.webkitAudioContext)();
+
+const osc=audio.createOscillator();
+
+const gain=audio.createGain();
+
+osc.frequency.value=freq;
+
+osc.connect(gain);
+
+gain.connect(audio.destination);
+
+gain.gain.value=.08;
+
+osc.start();
+
+osc.stop(audio.currentTime+time);
+
+}
+
+function playRollSound(){
+
+beep(250,.12);
+
+}
+
+function playWinSound(){
+
+beep(523,.15);
+
+setTimeout(()=>beep(659,.15),120);
+
+setTimeout(()=>beep(784,.20),240);
+
+}
+
+function playLoseSound(){
+
+beep(180,.30);
+
+}
+
+// ---------- Save ----------
+
+function saveGame(){
+
+localStorage.setItem("coins",coins);
+localStorage.setItem("wins",wins);
+localStorage.setItem("streak",streak);
+localStorage.setItem("highestStreak",highestStreak);
+localStorage.setItem("rebirths",rebirths);
+localStorage.setItem("rolls",rolls);
+
+localStorage.setItem("sound",soundEnabled);
+localStorage.setItem("animation",animationEnabled);
+
+}
+
+// ---------- Update UI ----------
+
+function updateUI(){
+
+document.getElementById("coins").textContent="🪙 Coins: "+coins;
+
+document.getElementById("wins").textContent="🏆 Wins: "+wins;
+
+document.getElementById("streak").textContent="🔥 Win Streak: "+streak;
+
+document.getElementById("highest").textContent="👑 Highest Streak: "+highestStreak;
+
+document.getElementById("rebirths").textContent="🌟 Rebirths: "+rebirths;
+
+document.getElementById("rolls").textContent="🎲 Rolls: "+rolls;
+
+}
+
+// ---------- Roll Dice ----------
+
+function rollDice(){
+
+if(animationEnabled){
+
+document.getElementById("dice1").classList.add("rolling");
+document.getElementById("dice2").classList.add("rolling");
+
+}
+
+playRollSound();
+
+let speed = Number(document.getElementById("speed").value);
+
+let timer = setInterval(function(){
+
+let r1=Math.floor(Math.random()*6)+1;
+let r2=Math.floor(Math.random()*6)+1;
+
+document.getElementById("dice1").textContent=faces[r1-1];
+document.getElementById("dice2").textContent=faces[r2-1];
+
+},speed);
+
+setTimeout(function(){
+
+clearInterval(timer);
+
+document.getElementById("dice1").classList.remove("rolling");
+document.getElementById("dice2").classList.remove("rolling");
+
+let d1=Math.floor(Math.random()*6)+1;
+let d2=Math.floor(Math.random()*6)+1;
+
+document.getElementById("dice1").textContent=faces[d1-1];
+document.getElementById("dice2").textContent=faces[d2-1];
+
+let total=d1+d2;
+
+rolls++;
+
+document.getElementById("sum").textContent=
+d1+" + "+d2+" = "+total;
+
+if(total===7){
+
+wins++;
+streak++;
+
+let reward=10+(rebirths*2);
+
+coins+=reward;
+
+if(streak>highestStreak){
+
+highestStreak=streak;
+
+}
+
+document.getElementById("status").innerHTML=
+"🎉 WIN! +"+reward+" Coins";
+
+playWinSound();
+
+}else{
+
+streak=0;
+
+document.getElementById("status").innerHTML=
+"❌ Try Again";
+
+playLoseSound();
+
+}
+
+// Jackpot
+if(d1===6 && d2===6){
+
+coins+=100;
+
+document.getElementById("status").innerHTML+=
+"<br>💎 JACKPOT! +100 Coins";
+
+}
+
+updateUI();
+
+saveGame();
+
+},1000);
+
+}
+
+// ---------- Rebirth ----------
+
+function rebirth(){
+
+if(coins<1000){
+
+alert("You need 1000 coins to rebirth!");
+return;
+
+}
+
+if(confirm("Rebirth? Your coins, wins, streak and rolls will reset.")){
+
+rebirths++;
+
+coins=0;
+wins=0;
+streak=0;
+highestStreak=0;
+rolls=0;
+
+updateUI();
+saveGame();
+
+alert("🌟 Rebirth Successful!");
+
+}
+
+}
+
+// ---------- Shop ----------
+
+let goldDice=false;
+let rainbowDice=false;
+
+function buyGoldDice(){
+
+if(goldDice){
+
+alert("Already owned!");
+return;
+
+}
+
+if(coins<100){
+
+alert("Not enough coins!");
+return;
+
+}
+
+coins-=100;
+goldDice=true;
+
+alert("✨ Gold Dice Purchased!");
+
+updateUI();
+saveGame();
+
+}
+
+function buyRainbowDice(){
+
+if(rainbowDice){
+
+alert("Already owned!");
+return;
+
+}
+
+if(coins<500){
+
+alert("Not enough coins!");
+return;
+
+}
+
+coins-=500;
+rainbowDice=true;
+
+alert("🌈 Rainbow Dice Purchased!");
+
+updateUI();
+saveGame();
+
+}
+
+// ---------- Daily Reward ----------
+
+function dailyReward(){
+
+let today=new Date().toDateString();
+
+let last=localStorage.getItem("dailyReward");
+
+if(last!==today){
+
+coins+=50;
+
+localStorage.setItem("dailyReward",today);
+
+alert("🎁 Daily Reward: +50 Coins!");
+
+updateUI();
+saveGame();
+
+}
+
+}
+
+dailyReward();
+
+// ---------- Achievements ----------
+
+function checkAchievements(){
+
+if(wins==1){
+
+alert("🏅 Achievement: First Win!");
+
+}
+
+if(wins==10){
+
+alert("🏅 Achievement: 10 Wins!");
+
+}
+
+if(coins>=1000){
+
+alert("💰 Achievement: Rich Player!");
+
+}
+
+if(highestStreak>=10){
+
+alert("🔥 Achievement: 10 Win Streak!");
+
+}
+
+}
+
+// ---------- Statistics ----------
+
+function showStats(){
+
+alert(
+
+"🎲 Rolls: "+rolls+
+"\n🏆 Wins: "+wins+
+"\n🪙 Coins: "+coins+
+"\n🔥 Highest Streak: "+highestStreak+
+"\n🌟 Rebirths: "+rebirths
+
+);
+
+}
+
+// ---------- Reset ----------
+
+function resetGame(){
+
+if(confirm("Delete all saved progress?")){
+
+localStorage.clear();
+
+location.reload();
+
+}
+
+}
+
+// ---------- Load Shop Save ----------
+
+goldDice = localStorage.getItem("goldDice") === "true";
+rainbowDice = localStorage.getItem("rainbowDice") === "true";
+
+// ---------- Save Shop ----------
+
+const oldSaveGame = saveGame;
+
+saveGame = function(){
+
+oldSaveGame();
+
+localStorage.setItem("goldDice", goldDice);
+localStorage.setItem("rainbowDice", rainbowDice);
+
+};
+
+// ---------- Apply Dice Skin ----------
+
+function applyDiceSkin(){
+
+const d1 = document.getElementById("dice1");
+const d2 = document.getElementById("dice2");
+
+d1.style.color = "";
+d2.style.color = "";
+
+if(goldDice){
+
+d1.style.color = "gold";
+d2.style.color = "gold";
+
+}
+
+if(rainbowDice){
+
+const colors = [
+"red",
+"orange",
+"yellow",
+"lime",
+"cyan",
+"magenta"
+];
+
+const c = colors[Math.floor(Math.random()*colors.length)];
+
+d1.style.color = c;
+d2.style.color = c;
+
+}
+
+}
+
+applyDiceSkin();
+
+// ---------- Mobile Vibration ----------
+
+function vibrate(ms){
+
+if("vibrate" in navigator){
+
+navigator.vibrate(ms);
+
+}
+
+}
+
+// Add vibration when rolling
+const oldRollDice = rollDice;
+
+rollDice = function(){
+
+vibrate(50);
+
+oldRollDice();
+
+};
+
+// ---------- Auto Dark Mode Save ----------
+
+const darkToggle = document.getElementById("darkToggle");
+
+darkToggle.checked =
+localStorage.getItem("darkMode") === "true";
+
+if(darkToggle.checked){
+
+document.body.style.background="#1a1a1a";
+
+}
+
+darkToggle.addEventListener("change",function(){
+
+localStorage.setItem("darkMode",this.checked);
+
+});
+
+// ---------- Buy Buttons ----------
+
+const shopButtons=document.querySelectorAll(".shop-item button");
+
+if(shopButtons.length>=2){
+
+shopButtons[0].onclick=buyGoldDice;
+shopButtons[1].onclick=buyRainbowDice;
+
+}
+
+// ---------- Startup ----------
+
+updateUI();
+applyDiceSkin();
+
+</script>
+
+</body>
+</html>
+
+
+<script>
+
+
+// ================================
+// PART 3A - XP & LEVEL SYSTEM
+// ================================
+
+// Load XP
+let xp = Number(localStorage.getItem("xp")) || 0;
+let level = Number(localStorage.getItem("level")) || 1;
+
+// Create UI automatically
+const panel = document.querySelector(".panel");
+
+const xpText = document.createElement("h3");
+xpText.id = "xp";
+panel.appendChild(xpText);
+
+const levelText = document.createElement("h3");
+levelText.id = "level";
+panel.appendChild(levelText);
+
+// Update XP display
+function updateXP(){
+
+xpText.textContent = "⭐ XP: " + xp;
+
+levelText.textContent = "🏅 Level: " + level;
+
+}
+
+// Earn XP
+function addXP(amount){
+
+xp += amount;
+
+while(xp >= level * 100){
+
+xp -= level * 100;
+
+level++;
+
+alert("🎉 LEVEL UP!\nYou reached Level " + level);
+
+}
+
+localStorage.setItem("xp", xp);
+localStorage.setItem("level", level);
+
+updateXP();
+
+}
+
+// Show current XP
+updateXP();
+
+
+// ================================
+// PART 3B - GEMS, MISSIONS & CHESTS
+// ================================
+
+// Load Save
+let gems = Number(localStorage.getItem("gems")) || 0;
+let missionProgress = Number(localStorage.getItem("missionProgress")) || 0;
+let chests = Number(localStorage.getItem("chests")) || 0;
+
+// Create UI
+const panel2 = document.querySelector(".panel");
+
+const gemsText = document.createElement("h3");
+gemsText.id = "gems";
+panel2.appendChild(gemsText);
+
+const missionText = document.createElement("h3");
+missionText.id = "mission";
+panel2.appendChild(missionText);
+
+const chestText = document.createElement("h3");
+chestText.id = "chests";
+panel2.appendChild(chestText);
+
+function updateExtras(){
+
+gemsText.textContent = "💎 Gems: " + gems;
+
+missionText.textContent =
+"🎯 Mission: Win 5 games (" +
+missionProgress + "/5)";
+
+chestText.textContent =
+"🎁 Treasure Chests: " + chests;
+
+}
+
+updateExtras();
+
+// Call this whenever the player wins
+function missionWin(){
+
+missionProgress++;
+
+if(missionProgress>=5){
+
+missionProgress=0;
+
+gems+=5;
+
+chests++;
+
+alert("🎉 Mission Complete!\n+5 Gems\n+1 Treasure Chest");
+
+}
+
+localStorage.setItem("gems",gems);
+localStorage.setItem("missionProgress",missionProgress);
+localStorage.setItem("chests",chests);
+
+updateExtras();
+
+}
+
+// Open Treasure Chest
+function openChest(){
+
+if(chests<=0){
+
+alert("No treasure chests!");
+
+return;
+
+}
+
+chests--;
+
+let reward=Math.floor(Math.random()*3);
+
+if(reward===0){
+
+coins+=100;
+
+alert("🪙 You found 100 Coins!");
+
+}
+
+if(reward===1){
+
+gems+=10;
+
+alert("💎 You found 10 Gems!");
+
+}
+
+if(reward===2){
+
+coins+=250;
+
+gems+=5;
+
+alert("🎉 Jackpot Chest!\n250 Coins + 5 Gems!");
+
+}
+
+updateUI();
+updateExtras();
+saveGame();
+
+}
+
+
+// ================================
+// PART 3C - LUCKY WHEEL, PETS,
+// UPGRADES & PLAYER PROFILE
+// ================================
+
+// Load Save
+let multiplier = Number(localStorage.getItem("multiplier")) || 1;
+let pets = Number(localStorage.getItem("pets")) || 0;
+
+localStorage.setItem("multiplier", multiplier);
+localStorage.setItem("pets", pets);
+
+// ---------- Lucky Wheel ----------
+
+function spinWheel(){
+
+let reward = Math.floor(Math.random()*5);
+
+if(reward==0){
+
+coins+=50;
+alert("🪙 Lucky Wheel: +50 Coins");
+
+}else if(reward==1){
+
+gems+=5;
+alert("💎 Lucky Wheel: +5 Gems");
+
+}else if(reward==2){
+
+coins+=200;
+alert("🎉 Lucky Wheel: +200 Coins");
+
+}else if(reward==3){
+
+chests++;
+alert("🎁 Lucky Wheel: Treasure Chest");
+
+}else{
+
+multiplier++;
+alert("⭐ Lucky Wheel: Coin Multiplier +1");
+
+}
+
+updateUI();
+updateExtras();
+saveGame();
+
+}
+
+// ---------- Buy Pet ----------
+
+function buyPet(){
+
+if(coins<1000){
+
+alert("Need 1000 Coins!");
+
+return;
+
+}
+
+coins-=1000;
+
+pets++;
+
+alert("🐶 Pet Purchased!");
+
+updateUI();
+saveGame();
+
+}
+
+// ---------- Upgrade ----------
+
+function upgradeMultiplier(){
+
+let cost = multiplier*500;
+
+if(coins<cost){
+
+alert("Need "+cost+" Coins!");
+
+return;
+
+}
+
+coins-=cost;
+
+multiplier++;
+
+alert("⬆️ Coin Multiplier Level "+multiplier);
+
+updateUI();
+
+saveGame();
+
+}
+
+// ---------- Player Profile ----------
+
+function showProfile(){
+
+alert(
+
+"👤 PLAYER PROFILE\n\n"+
+"🏅 Level: "+level+
+"\n⭐ XP: "+xp+
+"\n🪙 Coins: "+coins+
+"\n💎 Gems: "+gems+
+"\n🔥 Highest Streak: "+highestStreak+
+"\n🌟 Rebirths: "+rebirths+
+"\n🐶 Pets: "+pets+
+"\n⭐ Multiplier: x"+multiplier
+
+);
+
+}
+
+</script>
+
+<button onclick="spinWheel()">🎡 Lucky
+
+<script>
+
+// =====================================
+// PART 3D - COMPLETE SAVE SYSTEM FIX
+// =====================================
+
+// Save ALL game data
+function saveGame() {
+
+    const saveData = {
+
+        // Main Stats
+        coins,
+        gems,
+        wins,
+        streak,
+        highestStreak,
+        rebirths,
+        rolls,
+
+        // XP
+        xp,
+        level,
+
+        // Missions
+        missionProgress,
+        chests,
+
+        // Upgrades
+        multiplier,
+        pets,
+
+        // Shop
+        goldDice,
+        rainbowDice,
+
+        // Settings
+        soundEnabled,
+        animationEnabled,
+        musicEnabled,
+
+        // Daily Reward
+        lastDailyReward:
+            localStorage.getItem("lastDailyReward") || ""
+
+    };
+
+    localStorage.setItem(
+        "diceGameSave",
+        JSON.stringify(saveData)
+    );
+
+}
+
+// Load ALL game data
+function loadGame() {
+
+    const save =
+    JSON.parse(localStorage.getItem("diceGameSave"));
+
+    if(!save) return;
+
+    coins = save.coins || 0;
+    gems = save.gems || 0;
+    wins = save.wins || 0;
+    streak = save.streak || 0;
+    highestStreak = save.highestStreak || 0;
+    rebirths = save.rebirths || 0;
+    rolls = save.rolls || 0;
+
+    xp = save.xp || 0;
+    level = save.level || 1;
+
+    missionProgress =
+        save.missionProgress || 0;
+
+    chests =
+        save.chests || 0;
+
+    multiplier =
+        save.multiplier || 1;
+
+    pets =
+        save.pets || 0;
+
+    goldDice =
+        save.goldDice || false;
+
+    rainbowDice =
+        save.rainbowDice || false;
+
+    soundEnabled =
+        save.soundEnabled ?? true;
+
+    animationEnabled =
+        save.animationEnabled ?? true;
+
+    musicEnabled =
+        save.musicEnabled ?? true;
+
+    localStorage.setItem(
+        "lastDailyReward",
+        save.lastDailyReward || ""
+    );
+
+}
+
+// Load save
+loadGame();
+
+// Refresh everything
+updateUI();
+
+if(typeof updateExtras==="function")
+updateExtras();
+
+if(typeof updateXP==="function")
+updateXP();
+
+if(typeof applyDiceSkin==="function")
+applyDiceSkin();
+
+</script>
+
+<div class="panel">
+
+<h2>📅 Daily Quest</h2>
+
+<p id="dailyQuest">
+Loading...
+</p>
+
+<button onclick="claimDailyQuest()">
+🎁 Claim Reward
+</button>
+
+</div>
+
+<script>
+
+// ================================
+// DAILY QUEST SYSTEM
+// ================================
+
+let dailyQuest = {
+    target: 10,
+    progress: 0,
+    reward: 100,
+    completed: false
+};
+
+function loadDailyQuest(){
+
+    let today = new Date().toDateString();
+
+    let savedDay = localStorage.getItem("questDay");
+
+    if(savedDay !== today){
+
+        dailyQuest = {
+            target: 10,
+            progress: 0,
+            reward: 100,
+            completed: false
+        };
+
+        localStorage.setItem("questDay", today);
+
+    }else{
+
+        let save = localStorage.getItem("dailyQuest");
+
+        if(save){
+
+            dailyQuest = JSON.parse(save);
+
+        }
+
+    }
+
+    updateDailyQuest();
+
+}
+
+function updateDailyQuest(){
+
+    document.getElementById("dailyQuest").textContent =
+    "🎯 Win " +
+    dailyQuest.target +
+    " games (" +
+    dailyQuest.progress +
+    "/" +
+    dailyQuest.target +
+    ")";
+
+}
+
+function saveDailyQuest(){
+
+    localStorage.setItem(
+        "dailyQuest",
+        JSON.stringify(dailyQuest)
+    );
+
+}
+
+function questWin(){
+
+    if(dailyQuest.completed) return;
+
+    dailyQuest.progress++;
+
+    if(dailyQuest.progress >= dailyQuest.target){
+
+        dailyQuest.completed = true;
+
+        alert("🎉 Daily Quest Complete!\nClaim your reward.");
+
+    }
+
+    saveDailyQuest();
+
+    updateDailyQuest();
+
+}
+
+function claimDailyQuest(){
+
+    if(!dailyQuest.completed){
+
+        alert("Complete today's quest first!");
+
+        return;
+
+    }
+
+    coins += dailyQuest.reward;
+
+    alert(
+        "🎁 Reward Claimed!\n+" +
+        dailyQuest.reward +
+        " Coins"
+    );
+
+    dailyQuest.completed = false;
+    dailyQuest.progress = 0;
+
+    saveGame();
+    saveDailyQuest();
+    updateUI();
+    updateDailyQuest();
+
+}
+
+loadDailyQuest();
+
+questWin();
+
+</script>
+
+<div class="panel">
+
+<h2>🎁 Treasure Chests</h2>
+
+<h3 id="chests">🎁 Chests: 0</h3>
+
+<button onclick="openChest()">
+🎁 Open Chest
+</button>
+
+</div>
+
+<script>
+
+// ================================
+// TREASURE CHESTS
+// ================================
+
+let chests = Number(localStorage.getItem("chests")) || 0;
+
+function updateChestUI(){
+
+    document.getElementById("chests").textContent =
+    "🎁 Chests: " + chests;
+
+}
+
+function giveChest(amount=1){
+
+    chests += amount;
+
+    updateChestUI();
+
+    saveGame();
+
+}
+
+function openChest(){
+
+    if(chests<=0){
+
+        alert("❌ You don't have any treasure chests!");
+
+        return;
+
+    }
+
+    chests--;
+
+    const rewards=[
+
+        {name:"🪙 100 Coins",action:()=>coins+=100},
+
+        {name:"🪙 500 Coins",action:()=>coins+=500},
+
+        {name:"💎 10 Gems",action:()=>gems+=10},
+
+        {name:"💰 1000 Coins",action:()=>coins+=1000},
+
+        {name:"🎁 Bonus Chest",action:()=>chests++}
+
+    ];
+
+    const reward=
+    rewards[Math.floor(Math.random()*rewards.length)];
+
+    reward.action();
+
+    alert("🎉 Chest Reward!\n\n"+reward.name);
+
+    updateChestUI();
+
+    updateUI();
+
+    if(typeof updateExtras==="function"){
+        updateExtras();
+    }
+
+    saveGame();
+
+}
+
+updateChestUI();
+
+if(total===7){
+
+    wins++;
+
+    if(Math.random()<0.15){
+
+        giveChest();
+
+        alert("🎁 You found a Treasure Chest!");
+
+    }
+
+}
+
+</script>
+
+<button onclick="showInfo()">ℹ️ Info</button>
+
+<script>
+
+function showInfo() {
+    alert("🎲 Dice 7 Game\n\nRoll a total of 7 to win!");
+}
+
+</script>
+
+<button onclick="showAbout()">📖 About</button>
+
+<script>
+// ================================
+// ABOUT
+// ================================
+
+function showAbout(){
+
+alert(
+
+"🎲 DICE 7 GAME\n\n"+
+
+"Version: 1.0.0\n"+
+"Developer: floople\n"+
+
+"🎮 About\n"+
+"Dice 7 Game is a fun dice-rolling game where your goal is to roll a total of 7. Earn coins, collect gems, open treasure chests, complete quests, level up, rebirth, and unlock rewards as you play.\n\n"+
+
+"✨ Features\n"+
+"• Two Dice\n"+
+"• Rolling Animation\n"+
+"• Coins\n"+
+"• Gems\n"+
+"• Treasure Chests\n"+
+"• Lucky Wheel\n"+
+"• Daily Quests\n"+
+"• XP & Levels\n"+
+"• Rebirth\n"+
+"• Shop\n"+
+"• Achievements\n"+
+"• Statistics\n"+
+"• Auto Save\n"+
+"• Settings\n\n"+
+
+"❤️ Thank you for playing!\n"+
+"Have fun and good luck rolling a 7!"
+
+);
+
+}
+
+</script>
+
+<script>
+
+function saveGame() {
+
+    const save = {
+        coins,
+        gems,
+        wins,
+        streak,
+        highestStreak,
+        rebirths,
+        rolls,
+        xp,
+        level,
+        chests,
+        multiplier,
+        pets,
+        goldDice,
+        rainbowDice
+    };
+
+    localStorage.setItem("diceGameSave", JSON.stringify(save));
+
+}
+
+function loadGame() {
+
+    const save = JSON.parse(localStorage.getItem("diceGameSave"));
+
+    if(!save) return;
+
+    coins = save.coins || 0;
+    gems = save.gems || 0;
+    wins = save.wins || 0;
+    streak = save.streak || 0;
+    highestStreak = save.highestStreak || 0;
+    rebirths = save.rebirths || 0;
+    rolls = save.rolls || 0;
+    xp = save.xp || 0;
+    level = save.level || 1;
+    chests = save.chests || 0;
+    multiplier = save.multiplier || 1;
+    pets = save.pets || 0;
+    goldDice = save.goldDice || false;
+    rainbowDice = save.rainbowDice || false;
+
+    updateUI();
+
+}
+
+loadGame();
+
+</script>
+
+<input type="file" id="musicFile" accept="audio/*" style="display:none">
+
+<button onclick="document.getElementById('musicFile').click()">
+📂 Open Music File
+</button>
+
+<audio id="bgMusic" controls loop></audio>
+
+<script>
+
+const musicInput = document.getElementById("musicFile");
+const bgMusic = document.getElementById("bgMusic");
+
+musicInput.addEventListener("change", function(){
+
+    const file = this.files[0];
+
+    if(!file) return;
+
+    const url = URL.createObjectURL(file);
+
+    bgMusic.src = url;
+
+    bgMusic.play();
+
+    alert("🎵 Now Playing: " + file.name);
+
+});
+
+</script>
+
+<div class="panel">
+
+<h2>🎁 Redeem Code</h2>
+
+<input
+type="text"
+id="redeemCode"
+placeholder="Enter Code">
+
+<button onclick="redeemCode()">
+Redeem
+</button>
+
+</div>
+
+<script>
+
+// ======================
+// REDEEM CODES
+// ======================
+
+const redeemCodes = {
+
+    "WELCOME": {
+        coins:100,
+        gems:5
+    },
+
+    "LUCKY7": {
+        coins:500,
+        gems:10
+    },
+
+    "CHEST": {
+        chests:2
+    },
+
+    "LEVELUP": {
+        xp:200
+    }
+
+};
+
+function redeemCode(){
+
+    let input =
+    document.getElementById("redeemCode")
+    .value
+    .trim()
+    .toUpperCase();
+
+    if(input===""){
+
+        alert("Enter a code!");
+
+        return;
+
+    }
+
+    let reward = redeemCodes[input];
+
+    if(!reward){
+
+        alert("❌ Invalid code!");
+
+        return;
+
+    }
+
+    // One-time use
+    if(localStorage.getItem("used_"+input)){
+
+        alert("⚠️ Code already used!");
+
+        return;
+
+    }
+
+    if(reward.coins)
+        coins += reward.coins;
+
+    if(reward.gems)
+        gems += reward.gems;
+
+    if(reward.chests)
+        chests += reward.chests;
+
+    if(reward.xp)
+        xp += reward.xp;
+
+    localStorage.setItem("used_"+input,"true");
+
+    saveGame();
+
+    updateUI();
+
+    if(typeof updateExtras==="function")
+        updateExtras();
+
+    if(typeof updateXP==="function")
+        updateXP();
+
+    alert("🎉 Code Redeemed!");
+
+    document.getElementById("redeemCode").value="";
+
+}
+
+</script>
+
+<div class="panel">
+
+<h2>👤 Account</h2>
+
+<input type="text" id="username" placeholder="Username"><br><br>
+
+<input type="password" id="password" placeholder="Password"><br><br>
+
+<button onclick="register()">Register</button>
+
+<button onclick="login()">Login</button>
+
+<h3 id="playerName">Guest</h3>
+
+</div>
+
+<script>
+
+// =====================
+// ACCOUNT SYSTEM
+// =====================
+
+let currentPlayer = "Guest";
+
+function register(){
+
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value;
+
+    if(user==="" || pass===""){
+        alert("Enter a username and password.");
+        return;
+    }
+
+    if(localStorage.getItem("account_"+user)){
+        alert("Username already exists!");
+        return;
+    }
+
+    localStorage.setItem(
+        "account_"+user,
+        JSON.stringify({
+            password: pass
+        })
+    );
+
+    alert("✅ Account created!");
+}
+
+function login(){
+
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value;
+
+    const account = JSON.parse(localStorage.getItem("account_"+user));
+
+    if(!account){
+        alert("Account not found!");
+        return;
+    }
+
+    if(account.password !== pass){
+        alert("Wrong password!");
+        return;
+    }
+
+    currentPlayer = user;
+
+    document.getElementById("playerName").textContent =
+    "👤 " + currentPlayer;
+
+    localStorage.setItem("currentPlayer", currentPlayer);
+
+    alert("Welcome, " + currentPlayer + "!");
+}
+
+window.onload = function(){
+
+    const saved = localStorage.getItem("currentPlayer");
+
+    if(saved){
+
+        currentPlayer = saved;
+
+        document.getElementById("playerName").textContent =
+        "👤 " + currentPlayer;
+
+    }
+
+};
+
+</script>
+
+<div class="panel">
+
+<h2>🐶 Pets</h2>
+
+<h3 id="petCount">Pets: 0</h3>
+
+<button onclick="buyPet()">
+🐶 Buy Pet (1000 Coins)
+</button>
+
+<button onclick="showPets()">
+📖 My Pets
+</button>
+
+</div>
+
+<script>
+
+// =======================
+// PET SYSTEM
+// =======================
+
+let pets = Number(localStorage.getItem("pets")) || 0;
+
+const petNames = [
+    "🐶 Dog",
+    "🐱 Cat",
+    "🐰 Bunny",
+    "🦊 Fox",
+    "🐼 Panda",
+    "🐸 Frog",
+    "🐧 Penguin",
+    "🐲 Dragon"
+];
+
+function updatePets(){
+
+    document.getElementById("petCount").textContent =
+    "Pets: " + pets;
+
+}
+
+function buyPet(){
+
+    if(coins < 1000){
+
+        alert("❌ Need 1000 Coins!");
+
+        return;
+
+    }
+
+    coins -= 1000;
+
+    pets++;
+
+    localStorage.setItem("pets", pets);
+
+    updatePets();
+    updateUI();
+    saveGame();
+
+    alert("🎉 You adopted a new pet!");
+
+}
+
+function showPets(){
+
+    let text = "🐾 MY PETS\n\n";
+
+    if(pets===0){
+
+        text += "No pets yet.";
+
+    }else{
+
+        for(let i=0;i<pets;i++){
+
+            text += petNames[i % petNames.length] + "\n";
+
+        }
+
+    }
+
+    alert(text);
+
+}
+
+updatePets();
+
+coins += reward;
+
+coins += reward + (pets * 2);
+
+localStorage.setItem("pets", pets);
+
+pets = save.pets || 0;
+updatePets();
+
+</script>
+
+<div class="panel">
+
+<h2>🎨 Dice Skins</h2>
+
+<button onclick="buySkin('classic')">⚪ Classic (Free)</button>
+
+<button onclick="buySkin('gold')">🟡 Gold (500 Coins)</button>
+
+<button onclick="buySkin('rainbow')">🌈 Rainbow (1000 Coins)</button>
+
+<button onclick="buySkin('fire')">🔥 Fire (1500 Coins)</button>
+
+<button onclick="buySkin('ice')">❄️ Ice (1500 Coins)</button>
+
+</div>
+
+<script>
+
+// ======================
+// DICE SKINS
+// ======================
+
+let currentSkin =
+localStorage.getItem("currentSkin") || "classic";
+
+let ownedSkins =
+JSON.parse(localStorage.getItem("ownedSkins")) ||
+["classic"];
+
+const skinPrices = {
+    gold:500,
+    rainbow:1000,
+    fire:1500,
+    ice:1500
+};
+
+function buySkin(name){
+
+    if(ownedSkins.includes(name)){
+
+        currentSkin = name;
+
+        applySkin();
+
+        saveSkin();
+
+        alert("✅ Equipped " + name + " skin!");
+
+        return;
+
+    }
+
+    let cost = skinPrices[name];
+
+    if(coins < cost){
+
+        alert("❌ Need " + cost + " Coins!");
+
+        return;
+
+    }
+
+    coins -= cost;
+
+    ownedSkins.push(name);
+
+    currentSkin = name;
+
+    applySkin();
+
+    updateUI();
+
+    saveSkin();
+
+    alert("🎉 Unlocked " + name + " skin!");
+
+}
+
+function saveSkin(){
+
+    localStorage.setItem(
+        "ownedSkins",
+        JSON.stringify(ownedSkins)
+    );
+
+    localStorage.setItem(
+        "currentSkin",
+        currentSkin
+    );
+
+}
+
+function applySkin(){
+
+    const dice1 =
+    document.getElementById("dice1");
+
+    const dice2 =
+    document.getElementById("dice2");
+
+    dice1.className = "";
+    dice2.className = "";
+
+    dice1.classList.add(currentSkin);
+    dice2.classList.add(currentSkin);
+
+}
+
+applySkin();
+
+.classic{
+    color:white;
+}
+
+.gold{
+    color:gold;
+}
+
+.rainbow{
+    color:magenta;
+    text-shadow:
+    0 0 10px red,
+    0 0 20px yellow,
+    0 0 30px cyan;
+}
+
+.fire{
+    color:orange;
+    text-shadow:
+    0 0 10px red,
+    0 0 20px orange;
+}
+
+.ice{
+    color:cyan;
+    text-shadow:
+    0 0 10px white,
+    0 0 20px cyan;
+}
+
+</script>
